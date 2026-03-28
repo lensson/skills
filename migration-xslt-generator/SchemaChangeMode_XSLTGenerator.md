@@ -5,71 +5,73 @@ This mode generates XSLT migration scripts based on YANG file changes, with full
 ## Workflow
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                     XSLT Generation Workflow                                │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐                 │
-│  │  1. Get      │────▶│  2. Read      │────▶│  3. Analyze  │                 │
-│  │  YANG Diff   │     │  YANG Schema  │     │  YANG Changes │                 │
-│  └──────────────┘     └──────────────┘     └──────────────┘                 │
-│         │                    │                    │                        │
-│         │                    │                    ▼                        │
-│         │                    │             ┌──────────────┐                 │
-│         │                    │             │  4. Decision │                 │
-│         │                    │             └──────────────┘                 │
-│         │                    │                    │                        │
-│         │            ┌───────┴───────┐            │                        │
-│         │            ▼               ▼            ▼                        │
-│         │     ┌──────────────┐  ┌──────────────┐                           │
-│         │     │ Generate     │  │ Show No-XSLT │                           │
-│         │     │ XSLT         │  │ Reason       │                           │
-│         │     └──────────────┘  └──────────────┘                           │
-│         │            │                    │                                │
-│         └────────────┴────────────────────┘                                │
-│                          │                                                  │
-│                          ▼                                                  │
-│  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │                    5. User Feedback Loop                              │  │
-│  │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐     │  │
-│  │  │ Show XSLT to   │───▶│ User Reviews & │───▶│ Modify XSLT     │     │  │
-│  │  │ User           │    │ Provides Feedback│    │ Based on Input │     │  │
-│  │  └─────────────────┘    └─────────────────┘    └─────────────────┘     │  │
-│  │         │                       │                      │              │  │
-│  │         │                       │                      │              │  │
-│  │         │           ┌───────────┴───────────┐          │              │  │
-│  │         │           ▼                       ▼          │              │  │
-│  │         │    ┌─────────────┐         ┌─────────────┐   │              │  │
-│  │         │    │ User says   │         │ User says   │   │              │  │
-│  │         │    │ "N - OK"    │         │ "Y -满意"   │   │              │  │
-│  │         │    └──────┬──────┘         └──────┬──────┘   │              │  │
-│  │         │           │                       │          │              │  │
-│  │         │           ▼                       ▼          │              │  │
-│  │         │    ┌──────────────────────────────┐         │              │  │
-│  │         │    │ 6. Ask to Save File          │         │              │  │
-│  │         │    └──────────────────────────────┘         │              │  │
-│  │         │                       │                     │              │  │
-│  │         │           ┌───────────┴───────────┐          │              │  │
-│  │         │           ▼                       ▼          │              │  │
-│  │         │    ┌─────────────┐         ┌─────────────┐   │              │  │
-│  │         │    │ User says   │         │ User says   │   │              │  │
-│  │         │    │ "No"        │         │ "Yes"       │   │              │  │
-│  │         │    └──────┬──────┘         └──────┬──────┘   │              │  │
-│  │         │           │                       │          │              │  │
-│  │         │           ▼                       ▼          │              │  │
-│  │         │    ┌─────────────┐         ┌─────────────┐   │              │  │
-│  │         │    │ Return to   │         │ Save XSLT   │───┘              │  │
-│  │         │    │ Options     │         │ to File     │                  │  │
-│  │         │    └─────────────┘         └─────────────┘                   │  │
-│  └─────────┴──────────────────────────────────────────────────────────────┘  │
-│                          │                                                  │
-│                          ▼                                                  │
-│                   ┌──────────────┐                                          │
-│                   │  7. Return   │                                          │
-│                   │  to Options  │                                          │
-│                   └──────────────┘                                          │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
++-----------------------------------------------------------------------------+
+|                     XSLT Generation Workflow                                |
++-----------------------------------------------------------------------------+
+|                                                                             |
+|  +--------------+     +--------------+     +--------------+                 |
+|  |  1. Get      |---->|  2. Read      |---->|  3. Analyze  |                 |
+|  |  YANG Diff   |     |  YANG Schema  |     |  YANG Changes |                 |
+|  +--------------+     +--------------+     +--------------+                 |
+|         |                    |                    |                        |
+|         |                    |                    +------------------------+
+|         |                    |                              |              |
+|         |                    |                     +--------------+          |
+|         |                    |                     |  4. Decision |          |
+|         |                    |                     +--------------+          |
+|         |                    |                              |              |
+|         |            +-------+-------+                      |              |
+|         |            |               |                      |              |
+|         |            v               v                      v              |
+|         |     +--------------+  +--------------+                           |
+|         |     | Generate     |  | Show No-XSLT |                           |
+|         |     | XSLT         |  | Reason       |                           |
+|         |     +--------------+  +--------------+                           |
+|         |            |                    |                                |
+|         +------------+--------------------+                                |
+|                          |                                                  |
+|                          v                                                  |
+|  +-----------------------------------------------------------------------+  |
+|  |                    5. User Feedback Loop                              |  |
+|  |  +-----------------+    +-----------------+    +-----------------+     |  |
+|  |  | Show XSLT to   |---->| User Reviews & |---->| Modify XSLT     |     |  |
+|  |  | User           |    | Provides Feedback|    | Based on Input |     |  |
+|  |  +-----------------+    +-----------------+    +-----------------+     |  |
+|  |         |                       |                      |              |  |
+|  |         |                       |                      |              |  |
+|  |         |           +-----------+-----------+          |              |  |
+|  |         |           v                       v          |              |  |
+|  |         |    +-------------+         +-------------+   |              |  |
+|  |         |    | User says   |         | User says   |   |              |  |
+|  |         |    | "N - OK"    |         | "Y - OK"    |   |              |  |
+|  |         |    +------+------+         +------+------+   |              |  |
+|  |         |           |                       |          |              |  |
+|  |         |           v                       v          |              |  |
+|  |         |    +------------------------+              |              |  |
+|  |         |    | 6. Ask to Save File    |              |              |  |
+|  |         |    +------------------------+              |              |  |
+|  |         |                       |                     |              |  |
+|  |         |           +-----------+-----------+        |              |  |
+|  |         |           v                       v        |              |  |
+|  |         |    +-------------+         +-------------+ |              |  |
+|  |         |    | User says   |         | User says   | |              |  |
+|  |         |    | "No"       |         | "Yes"      | |              |  |
+|  |         |    +------+------+         +------+------+ |              |  |
+|  |         |           |                       |        |              |  |
+|  |         |           v                       v        v              |  |
+|  |         |    +-------------+         +-------------+              |  |
+|  |         |    | Return to   |         | Save XSLT   |              |  |
+|  |         |    | Options     |         | to File     |              |  |
+|  |         |    +-------------+         +-------------+              |  |
+|  +---------+-------------------------------------------------------------+  |
+|                          |                                                  |
+|                          v                                                  |
+|                   +--------------+                                          |
+|                   |  7. Return   |                                          |
+|                   |  to Options  |                                          |
+|                   +--------------+                                          |
+|                                                                             |
++-----------------------------------------------------------------------------+
 ```
 
 ## Step 1: Get YANG Diff
@@ -141,127 +143,104 @@ Schema Context:
 | **Data Transform** | `deviate replace` type, rename node | **Yes** |
 | **Node Removal** | `deviate not-supported` | **Yes** (to remove nodes) |
 | **Add Default** | `deviate add` with `default` value | **Yes** (to add defaults) |
-| **Validation** | `deviate add` with `must` constraint | **No** |
-| **Mandatory Status** | `deviate add` with `mandatory true` | **No** (manual action) |
+| **Must Constraint** | `deviate add` with `must` constraint | **Yes** (to update invalid values) |
+| **Mandatory Status** | `deviate add` with `mandatory true` | **Yes** (to add missing values) |
+| **Must + Mandatory** | `deviate add` with both | **Yes** (combined handling) |
 | **Optional Addition** | `deviate add` optional leaf | **No** |
+| **Unique Constraint** | `deviate add` with `unique` | **No** |
 | **Revision Only** | Add revision statement | **No** |
 | **Constraint Removal** | `deviate delete` constraint | **No** |
 
-### Detailed Decision Rules
+### Critical Decision Rules
 
-#### ✅ XSLT Needed: Data Transformation
-
+#### When `must` constraint is added:
 ```yang
-// Example 1: Type change
-deviation "/path/to/leaf" {
-  deviate replace {
-    type uint8;  // Changed from uint16
-  }
-}
-// -> XSLT needed to convert values
-```
-
-```yang
-// Example 2: Node renamed
-deviation "/path/to/old-name" {
-  deviate not-supported;
-}
-deviation "/path/to/new-name" {
-  deviate add {
-    // New node
-  }
-}
-// -> XSLT needed to rename nodes
-```
-
-```yang
-// Example 3: Default value added
-deviation "/path/to/leaf" {
-  deviate add {
-    default "some-value";
-  }
-}
-// -> XSLT needed to add default to existing configs
-```
-
-#### ❌ XSLT Not Needed: Schema Validation
-
-```yang
-// Example 1: Must constraint (validation only)
 deviation "/path/to/leaf" {
   deviate add {
     must "( . >= 9600)";
   }
 }
-// -> No XSLT needed, enforced at load time
 ```
+-> **XSLT Required**: Existing values may not satisfy the new constraint. Generate XSLT to:
+- Check if value satisfies the constraint
+- If not, update to the minimum valid value (9600 in this example)
 
+**Reference XSLT**: `xsl/qos/lsr2509_to_lsr2512_qos_update_bac_max_queue_size.xsl`
+
+#### When `mandatory true` is added:
 ```yang
-// Example 2: Mandatory status
 deviation "/path/to/leaf" {
   deviate add {
     mandatory true;
   }
 }
-// -> No XSLT needed, manual data fix required
 ```
+-> **XSLT Required**: Existing configs may be missing this leaf. Generate XSLT to:
+- Check if leaf exists in configs
+- If missing, add with appropriate default value
 
-#### ✅ XSLT Needed: Node Removal
-
+#### Combined `must` + `mandatory`:
 ```yang
-// Example: Node no longer supported
-deviation "/path/to/unsupported-node" {
-  deviate not-supported;
+deviation "/path/to/leaf" {
+  deviate add {
+    must "( . >= 9600)";
+    mandatory true;
+  }
 }
-// -> XSLT needed to remove the node from configs
 ```
+-> **XSLT Required**: Generate XSLT to handle both cases:
+1. Add leaf if missing (with minimum valid value)
+2. Update values that don't satisfy the `must` constraint
 
 ### Analysis Questions
 
 1. **What type of deviation is it?**
-   - `deviate add` with `must` → Schema validation only
-   - `deviate add` with `default` → May need XSLT to add default values
-   - `deviate replace` → Usually needs XSLT for data transformation
-   - `deviate not-supported` → May need XSLT to remove nodes
-   - `deviate delete` → Remove constraints, no data migration needed
+   - `deviate add` with `must` -> **XSLT needed** to update invalid values
+   - `deviate add` with `mandatory true` -> **XSLT needed** to add missing values
+   - `deviate add` with `default` -> **XSLT needed** to add default values
+   - `deviate replace` -> **XSLT needed** for data transformation
+   - `deviate not-supported` -> **XSLT needed** to remove nodes
+   - `deviate delete` -> No data migration needed
 
 2. **Does it affect existing data?**
-   - New optional nodes → No migration needed
-   - Removed nodes → Need XSLT to remove from config
-   - Type changes → Need XSLT for conversion
+   - New optional nodes -> No migration needed
+   - Removed nodes -> Need XSLT to remove from config
+   - Type changes -> Need XSLT for conversion
+   - New constraints -> Need XSLT to fix invalid/missing values
 
 3. **Is it backward compatible?**
-   - Adding optional elements → Compatible
-   - Adding mandatory elements → May need default value XSLT
-   - Removing elements → Incompatible, needs XSLT
+   - Adding optional elements -> Compatible
+   - Adding mandatory elements -> **NOT compatible**, need XSLT
+   - Adding `must` constraints -> **NOT compatible**, need XSLT to update values
+   - Removing elements -> **NOT compatible**, need XSLT
 
 ## Step 4: Decision Matrix
 
 ```
-                           ┌─────────────────────────────────────┐
-                           │         YANG Deviation Type         │
-                           └─────────────────────────────────────┘
-                                          │
-           ┌──────────────────────────────┼──────────────────────────────┐
-           │                              │                              │
-           ▼                              ▼                              ▼
-    ┌─────────────┐               ┌─────────────┐               ┌─────────────┐
-    │ Data Transform │           │ Validation  │               │ Not-Supported │
-    │ (type change, │           │ (must,      │               │ (node        │
-    │  rename, etc) │           │  mandatory) │               │  removal)    │
-    └─────────────┘               └─────────────┘               └─────────────┘
-           │                              │                              │
-           ▼                              ▼                              ▼
-    ┌─────────────┐               ┌─────────────┐               ┌─────────────┐
-    │ Generate    │               │ No XSLT     │               │ Generate    │
-    │ XSLT        │               │ Needed      │               │ XSLT        │
-    │             │               │             │               │ (remove     │
-    │             │               │ Reason:     │               │  nodes)     │
-    │             │               │ Schema      │               │             │
-    │             │               │ validation  │               │             │
-    │             │               │ enforced    │               │             │
-    │             │               │ at load time │              │             │
-    └─────────────┘               └─────────────┘               └─────────────┘
+                           +-------------------------------------+
+                           |         YANG Deviation Type         |
+                           +-------------------------------------+
+                                          |
+           +------------------------------+------------------------------+
+           |                              |                              |
+           v                              v                              v
+    +-------------+               +-------------+               +-------------+
+    | Data Transform |           | Must/Mandatory |           | Not-Supported |
+    | (type change, |           | (constraint    |           | (node        |
+    |  rename, etc) |           |  changes)      |           |  removal)    |
+    +-------------+               +-------------+               +-------------+
+           |                              |                              |
+           v                              v                              v
+    +-------------+               +-------------+               +-------------+
+    | Generate    |               | Generate    |               | Generate    |
+    | XSLT        |               | XSLT        |               | XSLT        |
+    |             |               |             |               | (remove     |
+    |             |               | - Add missing |              |  nodes)     |
+    |             |               |   values     |               |             |
+    |             |               | - Update     |               |             |
+    |             |               |   invalid    |               |             |
+    |             |               |   values    |               |             |
+    +-------------+               +-------------+               +-------------+
 ```
 
 ## Step 5: Output Formats
@@ -366,48 +345,49 @@ Based on existing files in the repository:
 </xsl:template>
 ```
 
+**Pattern 7: Update Invalid Values (Must Constraint)**
+```xml
+<!-- Update values that don't satisfy must constraint -->
+<xsl:template match="/cfg-ns:config/bbf-qos-tm:tm-profiles/bbf-qos-tm:bac-entry">
+    <xsl:choose>
+        <!-- If max-queue-size is missing or < 9600, set to 9600 -->
+        <xsl:when test="not(bbf-qos-tm:max-queue-size) or number(bbf-qos-tm:max-queue-size) &lt; 9600">
+            <xsl:copy>
+                <xsl:copy-of select="@*"/>
+                <xsl:for-each select="node()">
+                    <xsl:choose>
+                        <xsl:when test="local-name() = 'max-queue-size'">
+                            <xsl:element name="max-queue-size" namespace="urn:bbf:yang:bbf-qos-traffic-mngt">
+                                <xsl:value-of select="9600"/>
+                            </xsl:element>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:copy-of select="."/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:for-each>
+            </xsl:copy>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:copy>
+                <xsl:copy-of select="@*"/>
+                <xsl:apply-templates/>
+            </xsl:copy>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+```
+
 ### Option B: No XSLT Needed
 
-```markdown
-============================================================
-  XSLT Generation Analysis
-============================================================
+For changes that don't require data transformation:
 
-Changeset: {changeset_number}
-Node: {node_hash}
-YANG File: {yang_filename}
-
---------------------------------------------------------
-  Schema Changes Summary
---------------------------------------------------------
-
-{summary of changes from diff}
-
---------------------------------------------------------
-  Analysis Result: No XSLT Required
---------------------------------------------------------
-
-Reason: {detailed explanation}
-
-Examples:
-1. "This is a schema validation rule (must constraint) that
-   is enforced at data load time. No data transformation
-   is needed."
-
-2. "This adds an optional leaf with no default value.
-   Existing configurations will remain unchanged."
-
-3. "This adds a mandatory constraint. Existing configurations
-   that lack this field must be manually updated."
-
---------------------------------------------------------
-  Recommendation
---------------------------------------------------------
-
-{action items if any}
-
-============================================================
-```
+| Change Type | Reason |
+|-------------|--------|
+| Optional leaf addition | No impact on existing configs |
+| `unique` constraint | Schema validation only |
+| Revision statement | Metadata change |
+| Constraint removal | Removing restrictions |
 
 ## Step 6: User Feedback Loop
 
@@ -470,9 +450,42 @@ When user provides feedback:
 | "add condition" | Add predicate to match expression |
 | "remove this template" | Delete the specified template |
 | "change target value" | Modify value in template |
-| "N" or "no" or "满意" | Proceed to save prompt |
+| "N" or "no" or "OK" | Proceed to save prompt |
 
 ### When User is Satisfied
+
+When user enters 'N', 'no', or 'OK', proceed to save prompt.
+
+#### Domain Guessing Logic
+
+Before suggesting the save location, analyze the XSLT to guess the appropriate domain:
+
+**Step 1: Analyze XSLT Content**
+- Check namespace declarations (e.g., `urn:bbf:yang:bbf-qos-*` -> `qos`)
+- Check template match paths for domain hints
+- Check file naming patterns in comments
+
+**Step 2: Domain Mapping Table**
+
+| Namespace Pattern | Match Path Pattern | Domain |
+|------------------|-------------------|--------|
+| `bbf-qos-*` | `tm-profiles`, `bac-entry`, `classifiers`, `policies` | `qos` |
+| `bbf-l2-fwd:*` | `forwarding`, `bridge*` | `l2fwd` / `l2forwarding` |
+| `bbf-dot1q:*` | `vlan*` | `vlan` |
+| `nacm:*` | `nacm` | `nacm` |
+| `bbf-mcast:*` | `multicast`, `igmp`, `mld` | `multicast` |
+| `bbf-ipfix:*` | `ipfix`, `cache*` | `ipfix` |
+| `bbf-cfm:*` | `cfm`, `mep`, `mah` | `cfm` |
+| `bbf-erps:*` | `erps`, `ring*` | `erps` |
+| `onu:*`, `gpon:*` | `onus`, `ont*`, `pon*` | `pon` |
+| (not matched) | | infer from YANG file path |
+
+**Step 3: Version Detection**
+- Try to extract from comment header (e.g., `lsr2509_to_lsr2512`)
+- Fall back to user input if unknown
+- Use descriptive placeholder if completely unknown
+
+#### Save Prompt Template
 
 ```
 ============================================================
@@ -480,8 +493,11 @@ When user provides feedback:
 ============================================================
 
 Suggested file location:
-  Path: vobs/dsl/sw/y/build/apps/dmsupgrader_app/xsl/qos/
-  File: lsr2603_to_lsr2606_bac_entry_1.xsl
+  Path: vobs/dsl/sw/y/build/apps/dmsupgrader_app/xsl/{guessed_domain}/
+  File: lsr{from}_to_lsr{to}_{description}_{N}.xsl
+
+Detected domain: {guessed_domain}
+  Reason: {explanation based on namespace/match path}
 
 Do you want to save this XSLT file?
 
@@ -489,51 +505,77 @@ Options:
   [Y] Yes - Save to suggested location
   [N] No - Return without saving
   [C] Custom - Specify custom path/filename
+  [D] Domain - Change domain (show available domains)
 
 Enter your choice:
+```
+
+#### Domain Selection Sub-menu
+
+If user selects `[D]`:
+
+```
+============================================================
+  Select Domain
+============================================================
+
+Available domains:
+  [1] qos        - QoS policies, classifiers, policing
+  [2] l2fwd      - Layer 2 forwarding, bridge
+  [3] nacm       - NETCONF Access Control
+  [4] multicast  - IGMP/MLD, multicast routing
+  [5] ipfix      - IPFIX cache configurations
+  [6] cfm        - Connectivity Fault Management
+  [7] erps       - ERPS ring protection
+  [8] pon        - PON/ONT configurations
+  [9] remove     - Remove unsupported nodes
+  [10] merged    - Combined migration scripts
+  [11] default   - Default migration scripts
+
+Enter your choice (1-11) or 'b' to go back:
 ```
 
 ### Save File Flow
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Save File Flow                               │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────┐                                               │
-│  │ User chooses │                                               │
-│  │ to save     │                                               │
-│  └──────┬──────┘                                               │
-│         │                                                      │
-│         ▼                                                      │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │ Ask: [Y] Save / [N] No / [C] Custom path                │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│         │                                                      │
-│    ┌────┴────┬────────────────┐                               │
-│    ▼         ▼                ▼                               │
-│ [Y]         [N]               [C]                               │
-│    │         │                │                                │
-│    ▼         ▼                ▼                                │
-│ ┌─────────┐ ┌─────────┐ ┌─────────────┐                        │
-│ │Confirm &│ │Return to│ │Ask for path │                        │
-│ │Save     │ │Options  │ │& filename   │                        │
-│ └────┬────┘ └─────────┘ └──────┬──────┘                        │
-│      │                          │                               │
-│      ▼                          ▼                               │
-│ ┌─────────────────────────────────────────┐                    │
-│ │ Save file to: xsl/{domain}/filename.xsl │                    │
-│ │                                             │                │
-│ │ [B] Back to diff view                      │                │
-│ │ [Q] Quit                                   │                │
-│ └─────────────────────────────────────────┘                    │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
++-----------------------------------------------------------------+
+|                    Save File Flow                                |
++-----------------------------------------------------------------+
+|                                                                 |
+|  +-------------+                                               |
+|  | User chooses |                                               |
+|  | to save     |                                               |
+|  +------+------+                                               |
+|         |                                                      |
+|         v                                                      |
+|  +-------------------------------------+                        |
+|  | Ask: [Y] Save / [N] No / [C] Custom path                |   |
+|  +-------------------------------------+                        |
+|         |                                                      |
+|    +----+----+-----------------------+                         |
+|    v         v                       v                         |
+| [Y]         [N]                      [C]                       |
+|    |         |                        |                        |
+|    v         v                        v                        |
+| +---------+ +---------+ +-------------+                        |
+| |Confirm &| |Return to| |Ask for path |                        |
+| |Save     | |Options  | |& filename   |                        |
+| +----+----+ +---------+ +------+------+                        |
+|      |                          |                               |
+|      v                          v                               |
+| +--------------------------------------+                        |
+| | Save file to: xsl/{domain}/filename.xsl |                    |
+| |                                             |                |
+| | [B] Back to diff view                      |                |
+| | [Q] Quit                                   |                |
+| +--------------------------------------+                        |
+|                                                                 |
++-----------------------------------------------------------------+
 ```
 
 ## Full User Interface Examples
 
-### Example 1: No XSLT Needed
+### Example 1: XSLT Required for Must + Mandatory Constraint
 
 ```
 ============================================================
@@ -549,14 +591,14 @@ YANG File: nokia-bbf-qos-traffic-mngt-qos-fiber-dev.yang
 --------------------------------------------------------
 
 Reading: vobs/dsl/yang/deviations/qos-fiber/nokia-bbf-qos-traffic-mngt-qos-fiber-dev.yang
-Reading: vobs/dsl/yang/IACM/bbf-qos-tm.yang
+Reading: vobs/dsl/yang/IACM/BBF/ONU/bbf-qos-traffic-mngt-mounted.yang
 
 Schema loaded successfully.
 
 Schema Context:
 - Module: bbf-qos-tm (IACM)
 - Deviation target: /tm-profiles/bac-entry/max-queue-size
-- Leaf type: uint32
+- Leaf type: uint32 (bytes)
 - Related containers: tm-profiles, bac-entry
 
 --------------------------------------------------------
@@ -571,34 +613,138 @@ Detected deviation:
     * Set 'mandatory' to true
     * Added revision: 2024-05-08
 
-Classification: Schema Validation Rule
+Classification: Must Constraint + Mandatory Status
 
 --------------------------------------------------------
   Step 3: Decision
 --------------------------------------------------------
 
-┌─────────────────────────────────────────────────────────┐
-│  [XSLT Not Required]                                   │
-│                                                         │
-│  Reason: This deviation adds validation constraints    │
-│  (must) and marks the leaf as mandatory. These are     │
-│  schema-level rules enforced during data loading -     │
-│  no data transformation XSLT is needed.                │
-│                                                         │
-│  Action Required: If existing configurations lack       │
-│  max-queue-size values, they must be manually updated   │
-│  to include values >= 9600.                             │
-└─────────────────────────────────────────────────────────┘
+[XSLT Required]
+
+Reason: This deviation adds both a 'must' constraint (values >= 9600)
+and marks the leaf as mandatory. Existing configurations may:
+1. Lack the max-queue-size value (must be added)
+2. Have max-queue-size values < 9600 (must be updated)
+
+XSLT is needed to migrate existing configurations to be valid
+under the new schema.
 
 ============================================================
+  Generated XSLT
+============================================================
 
-[B] Back to YANG diff view
-[Q] Quit
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:bbf-qos-tm="urn:bbf:yang:bbf-qos-traffic-mngt"
+    xmlns:cfg-ns="urn:ietf:params:xml:ns:netconf:base:1.0">
+
+    <xsl:output method="xml" encoding="UTF-8" indent="yes"/>
+    <xsl:strip-space elements="*"/>
+
+    <!--
+        YANG Migration: nokia-bbf-qos-traffic-mngt-qos-fiber-dev.yang
+        Changeset: 599970
+        Node: 6af21798fe14
+        Change: Add mandatory constraint and must constraint for max-queue-size
+    -->
+
+    <xsl:template match="@* | node()">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="/cfg-ns:config/bbf-qos-tm:tm-profiles/bbf-qos-tm:bac-entry">
+        <xsl:choose>
+            <xsl:when test="not(bbf-qos-tm:max-queue-size)">
+                <!-- Add max-queue-size with default value 9600 -->
+                <xsl:copy>
+                    <xsl:copy-of select="@*"/>
+                    <xsl:for-each select="node()">
+                        <xsl:choose>
+                            <xsl:when test="local-name() = 'bac-type' and not(preceding-sibling::bbf-qos-tm:max-queue-size)">
+                                <xsl:element name="max-queue-size" namespace="urn:bbf:yang:bbf-qos-traffic-mngt">
+                                    <xsl:value-of select="9600"/>
+                                </xsl:element>
+                                <xsl:copy-of select="."/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:copy-of select="."/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:for-each>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:when test="number(bbf-qos-tm:max-queue-size) &lt; 9600">
+                <!-- Update invalid values to 9600 -->
+                <xsl:copy>
+                    <xsl:copy-of select="@*"/>
+                    <xsl:for-each select="node()">
+                        <xsl:choose>
+                            <xsl:when test="local-name() = 'max-queue-size'">
+                                <xsl:element name="max-queue-size" namespace="urn:bbf:yang:bbf-qos-traffic-mngt">
+                                    <xsl:value-of select="9600"/>
+                                </xsl:element>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:copy-of select="."/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:for-each>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:copy-of select="@*"/>
+                    <xsl:apply-templates/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+</xsl:stylesheet>
+
+============================================================
+  Feedback
+============================================================
+
+Please review the generated XSLT above.
+
+Options:
+  - Enter modification instructions
+  - Enter 'N' or 'no' if satisfied with the generated XSLT
+
+Enter your feedback: N
+
+============================================================
+  Save XSLT File
+============================================================
+
+Analyzing XSLT to detect domain...
+  - Namespace: urn:bbf:yang:bbf-qos-traffic-mngt -> qos
+  - Match path: /cfg-ns:config/bbf-qos-tm:tm-profiles/bbf-qos-tm:bac-entry
+  - Match path contains: tm-profiles, bac-entry -> qos
+
+Suggested file location:
+  Path: vobs/dsl/sw/y/build/apps/dmsupgrader_app/xsl/qos/
+  File: lsr2406_to_lsr2409_update_bac_max_queue_size_1.xsl
+
+Detected domain: qos
+  Reason: Namespace matches bbf-qos-*, match path contains tm-profiles/bac-entry
+
+Do you want to save this XSLT file?
+
+Options:
+  [Y] Yes - Save to suggested location
+  [N] No - Return without saving
+  [C] Custom - Specify custom path/filename
+  [D] Domain - Change domain (show available domains)
 
 Enter your choice:
 ```
 
-### Example 2: XSLT Generated with Feedback Loop
+### Example 2: XSLT Generated for Node Removal
 
 ```
 ============================================================
@@ -637,13 +783,11 @@ Classification: Node Removal
   Step 3: Decision
 --------------------------------------------------------
 
-┌─────────────────────────────────────────────────────────┐
-│  [XSLT Required]                                        │
-│                                                         │
-│  This deviation removes support for max-queue-size.     │
-│  XSLT is needed to remove this node from existing       │
-│  configurations during upgrade.                         │
-└─────────────────────────────────────────────────────────┘
+[XSLT Required]
+
+This deviation removes support for max-queue-size.
+XSLT is needed to remove this node from existing
+configurations during upgrade.
 
 ============================================================
   Generated XSLT
@@ -673,59 +817,23 @@ Classification: Node Removal
   Feedback
 ============================================================
 
-Please review the generated XSLT above.
-
-Options:
-  - Enter modification instructions
-  - Enter 'N' or 'no' if satisfied with the generated XSLT
-
-Enter your feedback: add description comment
-
-============================================================
-  Generated XSLT (Modified)
-============================================================
-
-<?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="1.0"
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:bbf-qos-tm="urn:bbf:yang:bbf-qos-tm">
-
-    <xsl:strip-space elements="*"/>
-    <xsl:output method="xml" indent="yes"/>
-
-    <!--
-        YANG Migration: nokia-bbf-qos-traffic-mngt-qos-fiber-dev.yang
-        Changeset: 608888
-        Node: abc123def456
-        Change: Remove max-queue-size from bac-entry (not-supported)
-        Description: User requested - add description comment
-    -->
-
-    <!-- Identity transform -->
-    <xsl:template match="@* | node()">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()"/>
-        </xsl:copy>
-    </xsl:template>
-
-    <!-- Remove max-queue-size from bac-entry -->
-    <xsl:template match="bbf-qos-tm:bac-entry/bbf-qos-tm:max-queue-size"/>
-
-</xsl:stylesheet>
-
-============================================================
-  Feedback
-============================================================
-
 Enter your feedback: N
 
 ============================================================
   Save XSLT File
 ============================================================
 
+Analyzing XSLT to detect domain...
+  - Namespace: urn:bbf:yang:bbf-qos-tm -> qos
+  - Match path: bbf-qos-tm:bac-entry/bbf-qos-tm:max-queue-size
+  - Match path contains: bac-entry -> qos
+
 Suggested file location:
   Path: vobs/dsl/sw/y/build/apps/dmsupgrader_app/xsl/qos/
   File: lsr2603_to_lsr2606_remove_bac_entry_max_queue_size_1.xsl
+
+Detected domain: qos
+  Reason: Namespace matches bbf-qos-*, match path contains bac-entry
 
 Do you want to save this XSLT file?
 
@@ -733,6 +841,7 @@ Options:
   [Y] Yes - Save to suggested location
   [N] No - Return without saving
   [C] Custom - Specify custom path/filename
+  [D] Domain - Change domain (show available domains)
 
 Enter your choice: Y
 
@@ -784,6 +893,19 @@ Based on existing directory structure in `vobs/dsl/sw/y/build/apps/dmsupgrader_a
 | Merged | `merged/` | Combined migration scripts |
 | Default | `default/` | Default migration scripts |
 
+## Reference XSLT Examples
+
+When generating XSLT for BAC entry `max-queue-size` constraint handling, refer to:
+
+| File | Purpose |
+|------|---------|
+| `xsl/qos/lsr2509_to_lsr2512_qos_update_bac_max_queue_size.xsl` | Handle max-queue-size constraints (BACNAME_BACKPLQ_RED case) |
+| `xsl/qos/lsr2203_to_lsr2206_update_bac_profile_1.xsl` | Handle max-queue-size value limits |
+
+These demonstrate proper patterns for handling:
+1. Missing values -> Add with default minimum value
+2. Invalid values -> Update to minimum valid value
+
 ## Important Notes
 
 1. **File Naming**: Always use the format `lsr{from}_to_lsr{to}_{description}_{N}.xsl`
@@ -797,3 +919,5 @@ Based on existing directory structure in `vobs/dsl/sw/y/build/apps/dmsupgrader_a
 4. **Merged Scripts**: After creating domain-specific XSLT, remember to update merged migration scripts in `xsl/merged/` directory
 
 5. **Comments**: Add descriptive comments explaining the migration purpose and any non-obvious logic
+
+6. **Must + Mandatory**: When both constraints are added, handle both cases in a single XSLT template

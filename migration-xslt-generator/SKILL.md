@@ -138,16 +138,36 @@ See [Background.md](Background.md) for detailed XSLT framework reference includi
 3. **Change type**: Use type converter from framework
 4. **Move node**: Match parent, create new structure, apply templates
 
-## Common YANG Changes and XSLT Mappings
+## YANG Change Decision Matrix
+
+See [SchemaChangeMode_XSLTGenerator.md](SchemaChangeMode_XSLTGenerator.md) for complete decision rules.
+
+### Quick Reference
 
 | YANG Change | XSLT Required |
 |-------------|---------------|
-| leaf → leaf-list | Wrap values in new element, iterate |
-| leaf-list → leaf | Use `xsl:value-of` instead of `xsl:apply-templates` |
-| Add new optional leaf | Copy through unchanged |
-| Remove leaf | Don't match template (will be removed) |
-| Change default value | Add explicit element with default |
-| Rename container | Use `xsl:element name="new-name"` |
+| `deviate not-supported` | **Yes** |
+| `deviate replace` type | **Yes** |
+| `deviate add` with `default` | **Yes** |
+| `deviate add` with `must constraint` | **Yes** |
+| `deviate add` with `mandatory true` | **Yes** |
+| `deviate add` with `must` + `mandatory` | **Yes** |
+| `deviate add` optional leaf | **No** |
+| `deviate add` with `unique` | **No** |
+| `revision` only change | **No** |
+| `deviate delete` constraint | **No** |
+
+### Critical: `must` and `mandatory` Rules
+
+**IMPORTANT**: When YANG adds `must` constraint or `mandatory true`, XSLT is **REQUIRED**:
+
+- `must "( . >= X)"` → Update existing values that don't satisfy the constraint
+- `mandatory true` → Add missing values with appropriate defaults
+- Combined `must` + `mandatory` → Handle both cases in single XSLT
+
+**Reference XSLT**:
+- `xsl/qos/lsr2509_to_lsr2512_qos_update_bac_max_queue_size.xsl`
+- `xsl/qos/lsr2203_to_lsr2206_update_bac_profile_1.xsl`
 
 ## Workflow Integration
 
