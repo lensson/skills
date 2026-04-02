@@ -321,7 +321,7 @@ Please review the generated XSLT above.
 
 Options:
   - Enter modification instructions (e.g., "add namespace declaration", "change match path")
-  - Enter 'N' or 'no' if satisfied with the generated XSLT
+  - Enter 'S', 'save', 'N' or 'no' if satisfied with the generated XSLT (will save to file)
 
 Enter your feedback:
 ```
@@ -343,7 +343,7 @@ When user provides feedback:
 | "add condition" | Add predicate to match expression |
 | "remove this template" | Delete the specified template |
 | "change target value" | Modify value in template |
-| "N" or "no" or "OK" | Proceed to save prompt |
+| "S" or "save" or "N" or "no" or "OK" | Proceed to save prompt |
 
 ---
 

@@ -17,8 +17,13 @@ I will help you generate the corresponding XSLT based on your recent YANG change
 **Flow:**
 1. Runs `scripts/find-yang-changes.sh` to query Mercurial
 2. Displays up to 3 recent YANG-related commits in ChangeList format
-3. User selects changeset(s) to view YANG diff
-4. Proceeds to XSLT generation
+3. User selects changeset(s):
+   - Options `1`, `2`, `3` - Select displayed commits
+   - Option `4` - **Manual Input**: Display `SchemaChangeMode_InputChangeset.md`, user enters changeset number(s), then runs `yang_diff.sh` to show diff
+   - Direct input - Enter changeset number directly (e.g., `599970`)
+4. `scripts/yang_diff.sh` shows detailed YANG diff with Migration Analysis
+5. User selects YANG file(s) for XSLT generation
+6. Proceeds to XSLT generation
 
 ## Mode 3: Validation Rule-Based Generation
 Use C++ code (Validation Rules) have been modified in validation applications to generate migration scripts.
