@@ -7,41 +7,75 @@ description: Automatically generate XSLT migration scripts for Lightspan release
 
 Generate XSLT migration scripts for Lightspan release upgrades to transform ConfD configuration data.
 
+---
+
+## File Responsibilities
+
+| File | Purpose |
+|------|---------|
+| **Generator.md** | User workflow, UI templates, interaction flow |
+| **Strategy.md** | Input-to-XSLT transformation logic, classification rules, XSLT patterns, documented cases |
+| **Background.md** | Background knowledge: XSLT framework, version info, domain mapping, reference data |
+
+---
+
 ## Quick Start - Choose Mode
 
-See [ChooseMode.md](ChooseMode.md) for the interactive mode selection interface.
+When user says "我要创建XSLT" (or similar intent to create XSLT), **always display the full content of `ChooseMode.md` below**, then wait for the user to select a mode. Do NOT use AskQuestion — show the markdown content directly.
+
+---
+
+# Choose Mode
+
+Please choose a mode:
+
+## Mode 1: Intent-Based Generation
+Use this when you know exactly what changes you want to make.
+
+- **Migration Intent**: Describe what you want to do (e.g., rename node, delete field, change type, merge nodes)
+- **Input XML**: Example configuration before migration
+- **Output XML**: Expected configuration after migration
+
+## Mode 2: YANG Change-Based Generation
+Use this when YANG files have been modified and you need to automatically generate migration scripts.
+
+I will help you generate the corresponding XSLT based on your recent YANG changes or specified commit records.
+
+**Flow:**
+1. Runs `scripts/find-yang-changes.sh` to query Mercurial
+2. Displays up to 3 recent YANG-related commits in ChangeList format
+3. User selects changeset(s) to view YANG diff
+4. Proceeds to XSLT generation
+
+## Mode 3: Validation Rule-Based Generation
+Use when C++ code (Validation Rules) have been modified in validation applications to generate migration scripts.
+
+**Supported validation apps:**
+- `switch_validator_app` - Switch validator application
+- `xpon_validator_app` - XPON validator application
+- `clock_validator_app` - Clock validator application
+- `switch_validator` - Switch validator (Configuration)
+- `xpon_validator` - XPON validator (Configuration)
+
+---
+
+When user selects Mode 1:
+1. **Display interface**: Show [IntentMode_Input.md](IntentMode_Input.md) as user interface
+2. **Follow workflow**: Reference [Generator.md](Generator.md) for detailed generation process
 
 When user selects Mode 2:
 1. **Display interface**: Show [SchemaChangeMode_ChangeList.md](SchemaChangeMode_ChangeList.md) as the user interface template
-   - Table shows up to 3 recent commits with YANG file changes by current user
-   - Column 4 is reserved for manual changeset input
 2. **Run script**: `scripts/find-yang-changes.sh`
-   - Script auto-detects current user from `hg config ui.username`
-   - Falls back to Linux `USER` env var if not set
-3. **Show results**: Table format with columns:
-   - `#` - Option number (1, 2, 3 for commits, 4 for manual)
-   - `Changeset` - Mercurial revision number
-   - `Node` - Commit node hash
-   - `Date` - Commit date
-   - `Description` - Commit message
-   - `YANG Files` - First 3 modified YANG files with `+N` line stats, `...` if more than 3
-   - `Diff` - Clickable link showing "N YANG +M lines", opens full hg diff when clicked
-4. **User selects**: Click Diff link to view full changeset diff, or input number 1/2/3/4
-5. **Mode 2.4**: When user inputs `4`, display [SchemaChangeMode_InputChangeset.md](SchemaChangeMode_InputChangeset.md)
-   - Shows current reference (last revision/changeset from previous selection)
-   - Prompts user to input a changeset number or revision hash
-   - Supports changeset numbers (e.g., `535193`), full node hash, or short hash
-   - Options: `b` to back to change list, `q` to quit
-6. **Extract diff**: When user selects 1/2/3 or enters a changeset in Mode 2.4, run `scripts/yang_diff.sh`
-   - See [SchemaChangeMode_YangDiff.md](SchemaChangeMode_YangDiff.md) for output format specification
-   - Displays formatted diff with migration analysis hints
-   - Supports multiple input formats: revision number, `rev:node`, or node hash
-7. **Generate XSLT**: When user selects a YANG file from the diff, follow [SchemaChangeMode_XSLTGenerator.md](SchemaChangeMode_XSLTGenerator.md)
-   - Step 1: Read related YANG schema files (IACM and deviation files)
-   - Step 2: Analyze the YANG changes in context
-   - Step 3: Decision - Generate XSLT or explain why not needed
-   - Step 4: Display XSLT or no-XSLT reason
-   - Return options: Back to diff view or Quit
+3. **Show results**: Table format with changeset information
+4. **Extract diff**: When user selects, run `scripts/yang_diff.sh`
+5. **Generate XSLT**: Follow [Generator.md](Generator.md)
+
+When user selects Mode 3:
+1. **Display interface**: Show [ValidationAppMode_ChangeList.md](ValidationAppMode_ChangeList.md) with up to 3 recent commits
+2. **User options**: Select `1`, `2`, `3`, multiple (`1,2`), manual input (`4`), or direct changeset
+3. **Show code diff**: Display [ValidationAppMode_CodeDiff.md](ValidationAppMode_CodeDiff.md) format
+4. **Map to YANG**: Analyze code diff, map rules to TranslatorStrategyCategory.json → YANG Domain
+5. **Generate XSLT**: Follow [Generator.md](Generator.md) for Mode 3 workflow
 
 ---
 
@@ -52,95 +86,89 @@ When user selects Mode 2:
 - **Merged scripts**: `vobs/dsl/sw/y/build/apps/dmsupgrader_app/xsl/merged/`
 - **Domain scripts**: `vobs/dsl/sw/y/build/apps/dmsupgrader_app/xsl/<domain>/`
 
-## Two Generation Modes
+---
+
+## Three Generation Modes
 
 ### Mode 1: Intent-Based Generation
 
 Use when user provides:
 - Migration intent (what changes are needed)
-- Input XML (before migration)
-- Output XML (expected after migration)
+- Input XML (before migration) - optional
+- Output XML (expected after migration) - optional
 
 **Process:**
-
-1. Analyze the differences between input and output XML
-2. Identify transformation patterns:
-   - Node renames
-   - Field additions/removals
-   - Type changes
-   - Structural changes (list to leaf-list, etc.)
-3. Generate appropriate XSLT template from patterns
-4. Validate the generated XSLT against input/output examples
+1. Display [IntentMode_Input.md](IntentMode_Input.md) as user interface
+2. Follow [Generator.md](Generator.md) for workflow
+3. Reference [Strategy.md](Strategy.md) for classification and patterns
+4. User Feedback Loop (modify XSLT until satisfied)
+5. Save to domain directory
 
 ### Mode 2: YANG Change-Based Generation
 
 Use when YANG files have been modified between releases.
 
 **Process:**
-
 1. Identify the YANG changes (additions, deletions, modifications)
-2. Map YANG changes to required XSLT transformations:
-   - New optional nodes → copy unchanged, no action needed
-   - Removed nodes → add template to remove them
-   - Type changes → add conversion logic
-   - Mandatory status changes → handle defaults
+2. Reference [Strategy.md](Strategy.md) for YANG-to-XSLT mapping
 3. Generate XSLT for each affected YANG file
 4. Create merged XSLT if multiple domain-specific scripts exist
 
-## XSLT Framework
+### Mode 3: Validation Rule-Based Generation
 
-### Framework Reference
+Use when validation app's C++ code (Validation Rules) have been modified.
 
-See [Background.md](Background.md) for detailed XSLT framework reference including:
-- XSLT file organization principles
-- Naming conventions
-- Standard template structure
-- Common transformation patterns
-- Optimization guidelines
+**Supported Validation Apps:**
+- `switch_validator_app` - Switch validator application
+- `xpon_validator_app` - XPON validator application
+- `clock_validator_app` - Clock validator application
+- `switch_validator` - Switch validator (legacy)
+- `xpon_validator` - XPON validator (legacy)
 
-**Key framework files:**
-- `framework/identity-utils.xsl` - Identity and type utilities
-- `framework/node-operations.xsl` - Node manipulation templates
-- `framework/type-converters.xsl` - Type conversion functions
+**Process:**
+1. **List Changesets**: Display [ValidationAppMode_ChangeList.md](ValidationAppMode_ChangeList.md) showing up to 3 recent commits
+2. **User Selection Options**:
+   - `1`, `2`, `3` - Select single changeset
+   - `1,2` or `1,2,3` - Select multiple changesets (comma-separated)
+   - `4` - Manually input changeset(s)
+   - Direct input - Enter changeset number directly (e.g., `535200`)
+   - `Q` - Quit and return to main menu
+3. **Display Code Diff**: Show [ValidationAppMode_CodeDiff.md](ValidationAppMode_CodeDiff.md) format
+4. **Map to YANG**: Analyze code changes and map to TranslatorStrategyCategory.json → YANG Domain
+5. **Generate XSLT**: Reference [Generator.md](Generator.md) for workflow
+6. **User Feedback Loop**: Modify XSLT until satisfied
+7. **Save**: Place in appropriate domain directory
 
-### Standard Template Structure
+---
 
-```xslt
-<?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="1.0"
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:confd="http://www.tail-f.com/ns/confd/1.0">
+## Reference Documentation
 
-    <!-- Description -->
-    <xsl:comment>
-        YANG Migration: filename.yang
-        Change: description of change
-        Date: YYYY-MM-DD
-    </xsl:comment>
+### Generator.md - Workflow
+- Step-by-step user interaction flow
+- UI templates for input collection
+- Feedback loop handling
+- Save file flow
 
-    <!-- Import framework -->
-    <xsl:import href="../../framework/identity-utils.xsl"/>
+### Strategy.md - Transformation Logic
+- Intent type classification (DELETE_NODE, RENAME_NODE, CHANGE_VALUE, etc.)
+- YANG change classification
+- XSLT pattern library
+- Domain detection logic
+- Optimization strategies
 
-    <!-- Root template -->
-    <xsl:template match="/">
-        <xsl:apply-templates select="*"/>
-    </xsl:template>
+### Background.md - Reference Data
+- XSLT framework files
+- Release version mapping (26.3→2603, 26.6→2606, etc.)
+- XSLT file naming conventions
+- Domain directory structure
+- Common namespace patterns
+- Framework files reference
 
-    <!-- Templates for specific transformations -->
-
-</xsl:stylesheet>
-```
-
-### Common Transformation Patterns
-
-1. **Rename node**: Use `xsl:template match="old-name"` with `xsl:element name="new-name"`
-2. **Delete node**: Don't match the node (implicit deletion)
-3. **Change type**: Use type converter from framework
-4. **Move node**: Match parent, create new structure, apply templates
+---
 
 ## YANG Change Decision Matrix
 
-See [SchemaChangeMode_XSLTGenerator.md](SchemaChangeMode_XSLTGenerator.md) for complete decision rules.
+See [Strategy.md](Strategy.md) for complete decision rules.
 
 ### Quick Reference
 
@@ -169,15 +197,18 @@ See [SchemaChangeMode_XSLTGenerator.md](SchemaChangeMode_XSLTGenerator.md) for c
 - `xsl/qos/lsr2509_to_lsr2512_qos_update_bac_max_queue_size.xsl`
 - `xsl/qos/lsr2203_to_lsr2206_update_bac_profile_1.xsl`
 
+---
+
 ## Workflow Integration
 
 ### Version Upgrade Flow
 
 1. Get source and target versions (e.g., 26.3 → 26.6)
-2. Find YANG files that changed between versions
-3. Generate migration XSLT for each changed YANG
-4. Create or update merged XSLT
-5. Place in appropriate directory
+2. Map to file version format (2603 → 2606)
+3. Find YANG files that changed between versions
+4. Generate migration XSLT for each changed YANG
+5. Create or update merged XSLT
+6. Place in appropriate directory
 
 ### Testing
 
@@ -186,18 +217,29 @@ See [SchemaChangeMode_XSLTGenerator.md](SchemaChangeMode_XSLTGenerator.md) for c
 3. Verify output matches expected new configuration
 4. Check for data loss or unexpected changes
 
+---
+
 ## Tools
 
-See [dmsupgrader_app/tools.md](dmsupgrader_app/tools.md) for available scripts and utilities.
-
-Key scripts:
+Key scripts (in project repository):
 - `scripts/find-yang-changes.sh` - Find YANG changes in hg commits
 - `scripts/generate-migration.sh` - Generate migration XSLT from YANG diff
 - `scripts/validate-xslt.sh` - Validate generated XSLT syntax
 
-## Documentation
+---
 
-- [Background](Background.md) - XSLT framework reference, naming conventions, patterns
-- [Overview](overview.md) - System overview (from dmsupgrader_app)
-- [Workflow](workflow.md) - Detailed workflow guide (from dmsupgrader_app)
-- [Tools Reference](tools.md) - Available tools (from dmsupgrader_app)
+## Documentation Map
+
+| Document | Purpose |
+|----------|---------|
+| [SKILL.md](SKILL.md) | This file - skill overview and quick reference |
+| [ChooseMode.md](ChooseMode.md) | Mode selection interface |
+| [IntentMode_Input.md](IntentMode_Input.md) | Mode 1 user interface |
+| [SchemaChangeMode_ChangeList.md](SchemaChangeMode_ChangeList.md) | Mode 2 changeset selection |
+| [SchemaChangeMode_YangDiff.md](SchemaChangeMode_YangDiff.md) | Mode 2 diff viewer |
+| [ValidationAppMode_ChangeList.md](ValidationAppMode_ChangeList.md) | Mode 3 changeset selection |
+| [ValidationAppMode_InputChangeset.md](ValidationAppMode_InputChangeset.md) | Mode 3 manual changeset input |
+| [ValidationAppMode_CodeDiff.md](ValidationAppMode_CodeDiff.md) | Mode 3 code diff viewer |
+| [Generator.md](Generator.md) | User workflow and interaction |
+| [Strategy.md](Strategy.md) | Transformation logic and patterns (including all XSLT patterns and documented cases) |
+| [Background.md](Background.md) | Framework reference and version info |
