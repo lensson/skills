@@ -321,7 +321,7 @@ Please review the generated XSLT above.
 
 Options:
   - Enter modification instructions (e.g., "add namespace declaration", "change match path")
-  - Enter 'S', 'save', 'N' or 'no' if satisfied with the generated XSLT (will save to file)
+  - Enter 'S', 'save', if satisfied with the generated XSLT (will save to file)
 
 Enter your feedback:
 ```
@@ -343,7 +343,7 @@ When user provides feedback:
 | "add condition" | Add predicate to match expression |
 | "remove this template" | Delete the specified template |
 | "change target value" | Modify value in template |
-| "S" or "save" or "N" or "no" or "OK" | Proceed to save prompt |
+| "S" or "save" or "OK" | Proceed to save prompt |
 
 ---
 
@@ -362,19 +362,19 @@ Reference [Background.md](Background.md) for domain mapping table.
 
 Suggested file location:
   Path: vobs/dsl/sw/y/build/apps/dmsupgrader_app/xsl/{domain}/
-  File: lsr{源版本}_to_lsr{目标版本}_{domain}_{改动标题}_{序号}.xsl
+  File: lsr{source}_to_lsr{target}_{domain}_{change_title}_{sequence}.xsl
 
 Detected domain: {domain}
   Reason: {explanation based on namespace/match path}
 
-版本映射说明:
+Version mapping reference:
   26.3 → 2603, 26.6 → 2606, 26.9 → 2609, 26.12 → 2612
 
 Do you want to save this XSLT file?
 
 Options:
   [Y] Yes - Save to suggested location
-  [V x y] Version - Specify versions (x=源版本, y=目标版本, e.g., V 2603 2606)
+  [V x y] Version - Specify versions (x=source, y=target, e.g., V 2603 2606)
   [N] No - Return without saving
   [C] Custom - Specify custom path/filename
   [D] Domain - Change domain (show available domains)
@@ -573,7 +573,7 @@ For complex intents that span multiple files or require extensive logic:
 
 ## Important Notes
 
-1. **File Naming Format**: Always use `lsr{源版本}_to_lsr{目标版本}_{domain}_{改动标题}_{序号}.xsl`
+1. **File Naming Format**: Always use `lsr{source}_to_lsr{target}_{domain}_{change_title}_{sequence}.xsl`
    - Reference Background.md for version mapping
    - Reference Strategy.md for pattern selection
 

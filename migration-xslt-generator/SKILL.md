@@ -21,7 +21,7 @@ Generate XSLT migration scripts for Lightspan release upgrades to transform Conf
 
 ## Quick Start - Choose Mode
 
-When user says "我要创建XSLT" (or similar intent to create XSLT), **always display the full content of `ChooseMode.md` below**, then wait for the user to select a mode. Do NOT use AskQuestion — show the markdown content directly.
+When user says "I want to create XSLT" (or similar intent to create XSLT), **always display the full content of `ChooseMode.md` below**, then wait for the user to select a mode. Do NOT use AskQuestion — show the markdown content directly.
 
 ---
 

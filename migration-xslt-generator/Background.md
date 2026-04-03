@@ -91,17 +91,17 @@ Each year has 4 releases, with the following version mapping:
 ### Standard Naming Format
 
 ```
-lsr{源版本}_to_lsr{目标版本}_{domain}_{改动标题}_{序号}.xsl
+lsr{source}_to_lsr{target}_{domain}_{change_title}_{sequence}.xsl
 ```
 
 ### Format Segments
 
 | Segment | Description | Example |
 |---------|-------------|---------|
-| `lsr{源版本}_to_lsr{目标版本}` | Version upgrade path | `lsr2603_to_lsr2606` |
+| `lsr{source}_to_lsr{target}` | Version upgrade path | `lsr2603_to_lsr2606` |
 | `{domain}` | Domain name (repeated, same as directory) | `qos`, `nacm`, `ipfix` |
-| `{改动标题}` | Brief description of the change | `delete_pass_case`, `update_max_queue_size` |
-| `{序号}` | Sequence number (multiple xsl for same change) | `1`, `2`, `3` |
+| `{change_title}` | Brief description of the change | `delete_pass_case`, `update_max_queue_size` |
+| `{sequence}` | Sequence number (multiple xsl for same change) | `1`, `2`, `3` |
 
 ### Naming Examples
 
