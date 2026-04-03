@@ -10,8 +10,8 @@
 | `switch_validator_app` | `vobs/dsl/sw/y/build/apps/switch_validator_app/` |
 | `xpon_validator_app` | `vobs/dsl/sw/y/build/apps/xpon_validator_app/` |
 | `clock_validator_app` | `vobs/dsl/sw/y/build/apps/clock_validator_app/` |
-| `switch_validator` | `vobs/dsl/sw/y/build/apps/switch_validator/` |
-| `xpon_validator` | `vobs/dsl/sw/y/build/apps/xpon_validator/` |
+| `switch_validator` | `vobs/dsl/sw/y/src/switch_validator/` |
+| `xpon_validator` | `vobs/dsl/sw/y/src/xpon_validator/` |
 
 ---
 
@@ -20,7 +20,7 @@
 ### Script to Run
 
 ```bash
-# Find validation app changes for current user
+# Find validation app changes for current user (user-first logic)
 scripts/find-validation-app-changes.sh
 
 # Show validation app diff for a changeset
@@ -29,75 +29,84 @@ scripts/validation_app_diff.sh <changeset>
 
 ### Sample Output - ChangeList
 
-```bash
+```
 === Find Recent Validation App Changes for User: zhenac ===
 
-+----+-------------+-------------+--------------------+---------------------------------------------------------------------------+------------------+
-| #  | Changeset   | Node        | Date               | Description                                                               | Validation Files |
-+----+-------------+-------------+--------------------+---------------------------------------------------------------------------+------------------+
-| 1  | 535200      | a1b2c3d4e5f | 2023-01-15 14:30   | BBN-123456 Add VsiMaxMacCountCheckRule validation                       | 2 files         |
-+----+-------------+-------------+--------------------+---------------------------------------------------------------------------+------------------+
-| 2  | 535195      | b2c3d4e5f6a | 2023-01-14 10:15   | BBN-123789 Update DualTagSharedFdbCheckRule logic                       | 1 files         |
-+----+-------------+-------------+--------------------+---------------------------------------------------------------------------+------------------+
-| 3  | 535190      | c3d4e5f6a1b | 2023-01-13 16:45   | BBN-123456 Add ForwarderStrategy translator                            | 3 files; ...    |
-+----+-------------+-------------+--------------------+---------------------------------------------------------------------------+------------------+
+(Showing 3 commits from recent commits)
 
-+-------------------------------------------+
-| Select option:                           |
-|   1, 2, 3          - Select changeset(s) |
-|   1,2              - Select multiple       |
-|   4                - Input changeset(s)  |
-|   <changeset>      - Direct input         |
-|   Q                - Quit and return to   |
-|                      main menu            |
-+-------------------------------------------+
+┌─────┬────────────┬──────────────────┬─────────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────────────────────┐
+│  #  │ Changeset  │ Date             │ Description                                                               │ Validation Files                                              │
+├─────┼────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│  1  │  698235    │  2026-03-19 09:47│ [BBN-353908]Adjust the rule to get the chip form cage entry. (you)   │ CSstBoardWorkModeStrategy.cpp                                  │
+│     │            │                  │                                                                       │ CSstDimensionIntermediateSchedulerNodePerChipCheckRule.cpp      │
+│     │            │                  │                                                                       │ CSwitchDebug.cpp                                                 │
+│     │            │                  │                                                                       │ ... +5 more files                                                │
+├─────┼────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│  2  │  697562    │  2026-03-17 13:44│ [BBN-352898]Adjust TranslatorStrategyCategory.json. (cudi)        │ TranslatorStrategyCategory.json                                │
+├─────┼────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│  3  │  697552    │  2026-03-17 10:27│ [BBN-352898]Adjust TranslatorStrategyCategory.json. (cudi)        │ TranslatorStrategyCategory.json                                │
+└─────┴────────────┴──────────────────┴─────────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────────────────────┘
+
+Select option:
+  1, 2, 3       - Select single or multiple (comma-separated) changesets
+  A             - Select ALL shown changesets
+  4             - Input changeset(s) manually
+  <changeset>   - Direct input (e.g., 535200 or 683103:1f571642b132)
+  B             - Back to ChooseMode
+  Q             - Quit and exit
 
 Enter your choice:
 ```
 
+### Display Logic
+
+- **User-first**: Shows current user's commits first (up to 3), then fills with others if needed
+- **Source indicator**: Displays "(Showing N commits from your recent commits)" or "(Showing N commits from your recent + others)"
+- **Files per line**: Each validation file appears on a separate line for readability
+
 ### Validation Files Column Format
 
-- Shows file count (e.g., `2 files`, `3 files`)
-- When more than 3 files exist, displays `...` at the end
-- File details shown inline: `+15/-3 VsiMaxMacCountCheckRule.cpp` (additions/deletions)
+- Shows file basenames only (full path not displayed)
+- When more than 3 files exist, displays `... +N more files` at the end
+- File entries are shown one per line for readability
 
 ---
 
 ## User Input Options
 
-| Option | Description | Example |
-|--------|-------------|---------|
-| `1`, `2`, `3` | Select one changeset to view code diff | `1` |
-| `1,2`, `2,3` | Select multiple changesets (comma-separated) | `1,2,3` |
-| `4` | Manually input changeset(s) | See Option 4 below |
-| Direct input | Enter changeset number directly | `535200` |
-| `Q` | Quit and return to main menu | - |
+Select option:
+  1, 2, 3       - Select single or multiple (comma-separated) changesets
+  A             - Select ALL shown changesets
+  4             - Input changeset(s) manually
+  <changeset>   - Direct input (e.g., 535200 or 683103:1f571642b132)
+  B             - Back to ChooseMode
+  Q             - Quit and exit
 
 ### Option 4: Manual Changeset Input
 
 When user enters `4`, display [ValidationAppMode_InputChangeset.md](ValidationAppMode_InputChangeset.md):
 
 ```
-+------------------------------------------------------------+
-|           Manual Input: Validation App Changeset            |
-+------------------------------------------------------------+
-|                                                            |
-|  Current reference (your last validation app modification): |
-|    - Revision: 518388                                      |
-|    - Changeset: 0ea50a483b99                              |
-|                                                            |
-+------------------------------------------------------------+
-|                                                            |
-|  Supported input formats:                                   |
-|    - Changeset number: 535200                               |
-|    - Node hash: 439b05854851 or 439b058                      |
-|                                                            |
-|  Enter changeset number or node hash:                       |
-|    _                                                       |
-|                                                            |
-+------------------------------------------------------------+
-
-Options: [B] Back to change list | [Q] Quit
+┌────────────────────────────────────────────────────────────────────────┐
+│           Manual Input: Validation App Changeset                       │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                        │
+│  Current reference (your last validation app modification):           │
+│    - Revision: 518388                                                 │
+│    - Changeset: 0ea50a483b99                                         │
+│                                                                        │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                        │
+│  Supported input formats:                                             │
+│    - Changeset number: 535200                                         │
+│    - Node hash: 439b05854851 or 439b058                               │
+│                                                                        │
+│  Enter changeset number or node hash:                                 │
+│    _                                                                  │
+│                                                                        │
+├────────────────────────────────────────────────────────────────────────┤
+│  Options: [B] Back to change list | [Q] Quit                          │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -113,14 +122,15 @@ Options: [B] Back to change list | [Q] Quit
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                   ValidationAppMode_ChangeList.md                          │
 │        (Displays up to 3 recent commits in validation apps)               │
+│        User-first logic: user's commits shown first, then others          │
 │                                                                             │
-│        +----+-------------+-------------+--------------------+            │
-│        | #  | Changeset   | Date        | Description        |            │
-│        +----+-------------+-------------+--------------------+            │
-│        | 1  | 535200      | ...         | BBN-123456         |            │
-│        | 2  | 535195      | ...         | BBN-123789         |            │
-│        | 3  | 535190      | ...         | BBN-123456         |            │
-│        +----+-------------+-------------+--------------------+            │
+│        ┌─────┬────────────┬─────────────────┬───────────────────────┐     │
+│        │  #  │ Changeset  │ Date            │ Description            │     │
+│        ├─────┼────────────┼─────────────────┼───────────────────────┤     │
+│        │  1  │  698235    │  2026-03-19... │ [BBN-353908]... (cudi)│     │
+│        │  2  │  697562    │  2026-03-17... │ [BBN-352898]... (you)│     │
+│        │  3  │  697552    │  2026-03-17... │ [BBN-352898]... (you)│     │
+│        └─────┴────────────┴─────────────────┴───────────────────────┘     │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
               ┌─────────────────────┼─────────────────────┐
@@ -145,19 +155,23 @@ Options: [B] Back to change list | [Q] Quit
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                      User Selection Prompt                                │
+│                      Confirm XSLT Generation                                │
 │                                                                             │
-│    1 - Analyze VsiMaxMacCountCheckRule.cpp                                │
-│    2 - Analyze TranslatorStrategyCategory.json                            │
-│    B - Back to changeset list                                             │
-│    Q - Quit                                                                │
+│    ================================================================        │
+│      Validation App Changes Detected                                      │
+│    ================================================================        │
+│                                                                             │
+│    Select option:                                                          │
+│      G             - Generate XSLT migration script                         │
+│      V             - View code diff again                                   │
+│      B             - Back to changeset selection                           │
+│      Q             - Quit and exit                                          │
 └─────────────────────────────────────────────────────────────────────────┘
                             │
         ┌───────────────────┼───────────────────┐
         │                   │                   │
         ▼                   ▼                   ▼
-       [1]                 [2]                 [Q]
-        │                   │                   │
+       [G]                 [V]                 [B/Q]
         │                   │                   │
         ▼                   ▼                   ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -171,6 +185,16 @@ Options: [B] Back to change list | [Q] Quit
 │  6. Save to Domain Directory                                              │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Direct Changeset Input
+
+When user directly enters a changeset (e.g., `683103:1f571642b132` or `683103`):
+
+1. Display code diff directly
+2. Show confirmation prompt
+3. If confirmed, proceed to Generator.md
 
 ---
 

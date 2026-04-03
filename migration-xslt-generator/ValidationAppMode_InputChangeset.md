@@ -1,4 +1,4 @@
-# Mode 3.4: Manual Input Changeset
+# Validation App Mode: Manual Input Changeset
 
 >This mode allows you to manually input a specific changeset or revision hash that contains validation app changes.
 
@@ -8,28 +8,31 @@
 2. Allows you to input a different changeset or revision
 3. Supports both changeset number and full node hash
 
-## Input Format
+## Sample Output
 
 ```
-+------------------------------------------------------------+
-|           Manual Input: Validation App Changeset            |
-+------------------------------------------------------------+
-|                                                            |
-|  Current reference (your last validation app modification): |
-|    - Revision: ${last_revision}                             |
-|    - Changeset: ${last_changeset}                          |
-|    - Node: ${last_node}                                    |
-|                                                            |
-+------------------------------------------------------------+
-|                                                            |
-|  Supported input formats:                                   |
-|    - Changeset number: 535200                               |
-|    - Node hash: 439b05854851 or 439b058                      |
-|                                                            |
-|  Enter changeset number or node hash:                       |
-|    _                                                       |
-|                                                            |
-+------------------------------------------------------------+
+=== Manual Input: Validation App Changeset ===
+
+┌────────────────────────────────────────────────────────────────────────┐
+│           Manual Input: Validation App Changeset                       │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  Current reference (your last validation app modification):         │
+│    - Revision: 518388                                              │
+│    - Changeset: 0ea50a483b99                                       │
+│                                                                    │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  Supported input formats:                                          │
+│    - Changeset number: 535200                                      │
+│    - Node hash: 439b05854851 or 439b058                            │
+│                                                                    │
+│  Enter changeset number or node hash:                              │
+│    _                                                               │
+│                                                                    │
+├────────────────────────────────────────────────────────────────────────┤
+│  Options: [B] Back to change list | [Q] Quit                       │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Supported Input Types
@@ -47,34 +50,34 @@
 |--------|-------------|
 | Enter changeset number | Input like `535200` |
 | Enter node hash | Input like `439b05854851` or `439b058` |
-| `b` | Back to change list |
-| `q` | Quit and return to main menu |
+| `b` or `B` | Back to change list |
+| `q` or `Q` | Quit and return to main menu |
 
 ## Workflow
 
 ```
-+----------------------------------------------------------+
-|                    Change List (Mode 3)                   |
-|                                                            |
-|  [4] - Input changeset(s) manually                         |
-|                                                            |
-+----------------------------------------------------------+
+┌────────────────────────────────────────────────────────────────────────┐
+│                    Change List (Mode 3)                                │
+│                                                                    │
+│  [4] - Input changeset(s) manually                                   │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────────┘
                            │
                            ▼
-+----------------------------------------------------------+
-|           ValidationAppMode_InputChangeset.md              |
-|                                                            |
-|  User enters changeset: 535200                             |
-|                                                            |
-+----------------------------------------------------------+
+┌────────────────────────────────────────────────────────────────────────┐
+│           ValidationAppMode_InputChangeset.md                            │
+│                                                                    │
+│  User enters changeset: 535200                                       │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────────┘
                            │
                            ▼
-+----------------------------------------------------------+
-|              ValidationAppMode_CodeDiff.md                |
-|                                                            |
-|  Display code diff for changeset 535200                   |
-|                                                            |
-+----------------------------------------------------------+
+┌────────────────────────────────────────────────────────────────────────┐
+│              ValidationAppMode_CodeDiff.md                               │
+│                                                                    │
+│  Display code diff for changeset 535200                               │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Validation
@@ -86,34 +89,46 @@
 
 ## Error Messages
 
-```
-+------------------------------------------------------------+
-|                     Error: Invalid Input                    |
-+------------------------------------------------------------+
-|                                                            |
-|  Changeset "535200" not found.                              |
-|                                                            |
-|  Please enter a valid changeset number or node hash.        |
-|                                                            |
-+------------------------------------------------------------+
-|  Press any key to continue...                               |
-+------------------------------------------------------------+
-```
+### Invalid Input
 
 ```
-+------------------------------------------------------------+
-|                     Error: No Validation Files               |
-+------------------------------------------------------------+
-|                                                            |
-|  Changeset "535200" does not contain any validation app     |
-|  files.                                                     |
-|                                                            |
-|  This mode only supports changesets that modify files in:  |
-|    - switch_validator_app                                  |
-|    - xpon_validator_app                                     |
-|    - clock_validator_app                                   |
-|                                                            |
-+------------------------------------------------------------+
-|  Press any key to continue...                               |
-+------------------------------------------------------------+
+┌────────────────────────────────────────────────────────────────────────┐
+│                         Error: Invalid Input                           │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  Changeset "535200" not found.                                      │
+│                                                                    │
+│  Please enter a valid changeset number or node hash.                │
+│                                                                    │
+├────────────────────────────────────────────────────────────────────────┤
+│  Press any key to continue...                                        │
+└────────────────────────────────────────────────────────────────────────┘
 ```
+
+### No Validation Files
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                      Error: No Validation Files                        │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  Changeset "535200" does not contain any validation app              │
+│  files.                                                             │
+│                                                                    │
+│  This mode only supports changesets that modify files in:           │
+│    - switch_validator_app                                           │
+│    - xpon_validator_app                                              │
+│    - clock_validator_app                                            │
+│                                                                    │
+├────────────────────────────────────────────────────────────────────────┤
+│  Press any key to continue...                                        │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+## Related Documents
+
+| Document | Purpose |
+|----------|---------|
+| [ValidationAppMode_ChangeList.md](ValidationAppMode_ChangeList.md) | Change list interface |
+| [ValidationAppMode_CodeDiff.md](ValidationAppMode_CodeDiff.md) | Code diff viewer format |
+| [Generator.md](Generator.md) | XSLT generation workflow |

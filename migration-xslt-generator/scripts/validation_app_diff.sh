@@ -6,24 +6,35 @@
 #        ./validation_app_diff.sh <revision>:<node>
 #        ./validation_app_diff.sh <node_hash>
 #        ./validation_app_diff.sh <changeset1,changeset2,changeset3>
+#        ./validation_app_diff.sh --diff-only <changeset>
 #
 # Examples:
 #   ./validation_app_diff.sh 535200
 #   ./validation_app_diff.sh 535200:a1b2c3d4e5f6
 #   ./validation_app_diff.sh a1b2c3d4e5f6
 #   ./validation_app_diff.sh 535200,535195,535190
+#   ./validation_app_diff.sh --diff-only 535200  # Exit after showing diff
 #===============================================================================
 
 WORKSPACE="/home/zhenac/fiber_code/sw"
 cd "$WORKSPACE"
 
+# Check for --diff-only flag
+DIFF_ONLY_MODE=false
+if [ "$1" = "--diff-only" ]; then
+    DIFF_ONLY_MODE=true
+    shift
+fi
+
 # Check if argument is provided
 if [ -z "$1" ]; then
-    echo "Usage: $0 <changeset|revision:node|node_hash|changeset1,changeset2,...>"
+    echo "Usage: $0 [options] <changeset|revision:node|node_hash|changeset1,changeset2,...>"
+    echo "Options:"
+    echo "  --diff-only    Show diff only, exit after displaying changes"
     echo "Examples:"
     echo "  $0 535200"
     echo "  $0 535200:a1b2c3d4e5f6"
-    echo "  $0 535200,535195,535190"
+    echo "  $0 --diff-only 535200"
     exit 1
 fi
 
@@ -44,10 +55,19 @@ display_single_changeset() {
     local SOURCE="$2"
     
     # Parse the input - handle both "rev:node" format and just revision/node
+    # NOTE: When both rev and node are provided (rev:node format), 
+    # the node is globally unique while rev may differ between machines.
+    # We prioritize the node hash as the source of truth.
     if [[ "$REVISION" == *":"* ]]; then
-        # Format: rev:node
-        REV=$(echo "$REVISION" | cut -d':' -f1)
+        # Format: rev:node - use NODE as source of truth (global)
         NODE=$(echo "$REVISION" | cut -d':' -f2)
+        # Get revision info from node (globally unique)
+        REV_INFO=$(hg log -r "$NODE" --template "{rev}" 2>/dev/null)
+        if [ -z "$REV_INFO" ]; then
+            echo "Error: Node $NODE not found"
+            return 1
+        fi
+        REV="$REV_INFO"
     else
         # Check if it's a valid revision number or node hash
         if [[ "$REVISION" =~ ^[0-9]+$ ]]; then
@@ -236,7 +256,12 @@ display_single_changeset() {
     done
     
     echo "============================================================"
-    
+
+    # If in diff-only mode, return here with success
+    if [ "$DIFF_ONLY_MODE" = true ]; then
+        return 0
+    fi
+
     # Return arrays for selection prompt
     echo ""
     echo "  Select Validation App File for XSLT Generation"
